@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "page-analyzer"
+name = "hexlet-code"
 version = "0.1.0"
 description = ""
 authors = ["Barzabek <kochenko1995@mail.ru>"]
@@ -7,7 +7,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+flask = "^3.0.0"
+gunicorn = "^21.2.0"
 
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.1.0"
 
 [build-system]
 requires = ["poetry-core"]
