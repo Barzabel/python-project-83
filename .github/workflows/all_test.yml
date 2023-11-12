@@ -24,4 +24,4 @@ jobs:
           make lint
       - name: Run tests
         run: |
-          make test
+          make all_tests
