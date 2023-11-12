@@ -5,6 +5,7 @@ dict
 dist/*
 .DS_Store
 .venv/
+.env/
 .coverage
 coverage.xml
 .pytest_cache/
