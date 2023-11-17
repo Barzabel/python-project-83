@@ -18,4 +18,4 @@ def runner(flask_app):
 
 def test_request_example(client):
     response = client.get("/")
-    assert b"Welcome to my awesome homepage." in response.data
+    assert b"Анализатор страниц" in response.data
