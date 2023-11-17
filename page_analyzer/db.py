@@ -1,5 +1,5 @@
 import psycopg2
-from psycopg2.extras import NamedTupleCursor, RealDictCursor
+from psycopg2.extras import NamedTupleCursor
 
 
 class DatabaseException(Exception):

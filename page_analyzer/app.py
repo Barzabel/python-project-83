@@ -22,6 +22,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
+
 @app.get('/')
 def index():
     messages = get_flashed_messages(with_categories=True)
