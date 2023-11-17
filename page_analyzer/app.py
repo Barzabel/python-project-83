@@ -26,9 +26,7 @@ app.secret_key = SECRET_KEY
 @app.get('/')
 def index():
     messages = get_flashed_messages(with_categories=True)
-    db = Database(DATABASE_URL)
-    urls = db.get_urls()
-    return render_template('index.html', url=urls, messages=messages)
+    return render_template('index.html', messages=messages)
 
 
 @app.post('/urls')
