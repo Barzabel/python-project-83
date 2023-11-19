@@ -11,9 +11,9 @@ from flask import (
 from dotenv import load_dotenv
 from .db import Database_url, Database_url_checks
 from .validation import is_validat_url
-
+from .parser import Parser
 import os
-
+import re
 
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -34,6 +34,8 @@ def urls_create():
 
     db_url = Database_url(DATABASE_URL)
     url = request.form.to_dict()['url'].strip()
+    pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}"
+    url = re.search(pattern, url)[0]
     errors = is_validat_url(url)
     if errors:
         flash('Некорректный URL', 'danger')
@@ -77,9 +79,21 @@ def url(id):
 
 @app.post('/urls/<int:id>/checks')
 def url_checks(id):
-    db_url_checks = Database_url_checks(DATABASE_URL)
-    db_url_checks.add_url_checks(id)
-    return redirect(url_for('url', id=id))
+    db_url = Database_url(DATABASE_URL)
+    url = db_url.get_url(id)[0]
+    try:
+        data = Parser(url.name)
+        status_code = data.get_status()
+        if int(status_code) > 299:
+            flash('Произошла ошибка при проверке', 'danger')
+        else:
+            flash('Страница успешно проверена', 'success')
+        db_url_checks = Database_url_checks(DATABASE_URL)
+        db_url_checks.add_url_checks(id, status_code)
+    except: # noqa E722
+        flash('Произошла ошибка при проверке', 'danger')
+    finally:
+        return redirect(url_for('url', id=id))
 
 
 @app.errorhandler(404)

@@ -82,13 +82,15 @@ class Database_url_checks:
     def __del__(self):
         self.conect.close()
 
-    def add_url_checks(self, url_id):
+    def add_url_checks(self, url_id, status_code):
         try:
             cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'INSERT INTO urls_checks (url_id) VALUES (%s) RETURNING id'
+            SQL = 'INSERT INTO urls_checks (url_id, status_code) \
+            VALUES ((%s), (%s)) RETURNING id'
+            print((str(url_id), str(status_code)))
             cur.execute(
                     SQL,
-                    (str(url_id),))
+                    (str(url_id), str(status_code)))
             result = cur.fetchall()
             self.conect.commit()
             return result
