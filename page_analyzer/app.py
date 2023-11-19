@@ -84,10 +84,7 @@ def url_checks(id):
     try:
         data = Parser(url.name)
         status_code = data.get_status()
-        if int(status_code) > 299:
-            flash('Произошла ошибка при проверке', 'danger')
-        else:
-            flash('Страница успешно проверена', 'success')
+        flash('Страница успешно проверена', 'success')
         db_url_checks = Database_url_checks(DATABASE_URL)
         db_url_checks.add_url_checks(id, status_code)
     except: # noqa E722
