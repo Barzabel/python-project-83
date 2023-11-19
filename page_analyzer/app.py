@@ -34,13 +34,13 @@ def urls_create():
 
     db_url = Database_url(DATABASE_URL)
     url = request.form.to_dict()['url'].strip()
-    pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}"
-    url = re.search(pattern, url)[0]
     errors = is_validat_url(url)
     if errors:
         flash('Некорректный URL', 'danger')
         messages = get_flashed_messages(with_categories=True)
         return render_template('index.html', url=url, messages=messages)
+    pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}"
+    url = re.search(pattern, url)[0]
     url_by_name = db_url.get_url_by_name(url)
 
     if url_by_name:
