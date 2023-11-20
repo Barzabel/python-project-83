@@ -36,7 +36,7 @@ class Database_url:
         try:
             cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
             SQL = 'SELECT urls.id, urls.name, urls.created_at, \
-            urls_checks.status_code, MAX(urls_checks.created_at) FROM urls\
+            urls_checks.status_code, MAX(urls_checks.url_id) FROM urls\
             LEFT JOIN urls_checks ON urls.id=urls_checks.url_id GROUP BY \
             urls.id, urls.name, urls.created_at, urls_checks.status_code, \
             urls_checks.created_at ORDER BY urls.created_at DESC'
@@ -82,18 +82,19 @@ class Database_url_checks:
     def __del__(self):
         self.conect.close()
 
-    def add_url_checks(self, url_id, status_code):
+    def add_url_checks(self, url_id, data):
+        data['url_id'] = url_id
         try:
             cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'INSERT INTO urls_checks (url_id, status_code) \
-            VALUES ((%s), (%s)) RETURNING id'
-            print((str(url_id), str(status_code)))
             cur.execute(
-                    SQL,
-                    (str(url_id), str(status_code)))
-            result = cur.fetchall()
+                '''
+                INSERT INTO urls_checks (url_id, status_code,
+                h1, title, description)
+                VALUES (%(url_id)s, %(status_code)s, %(h1)s,
+                %(title)s, %(description)s)
+                ''', data
+            )
             self.conect.commit()
-            return result
         except psycopg2.Error as e:
             message = f'Can\'t add url to database! Error: {e}'
             raise DatabaseException(message)
@@ -101,7 +102,8 @@ class Database_url_checks:
     def get_url(self, id):
         try:
             cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'SELECT * FROM urls_checks WHERE url_id = (%s)'
+            SQL = 'SELECT * FROM urls_checks \
+            WHERE url_id = (%s) ORDER BY id DESC'
             cur.execute(SQL, (id,))
             result = cur.fetchall()
             return result

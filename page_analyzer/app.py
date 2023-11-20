@@ -31,7 +31,6 @@ def index():
 
 @app.post('/urls')
 def urls_create():
-
     db_url = Database_url(DATABASE_URL)
     url = request.form.to_dict()['url'].strip()
     errors = is_validat_url(url)
@@ -83,11 +82,12 @@ def url_checks(id):
     url = db_url.get_url(id)[0]
     try:
         data = Parser(url.name)
-        status_code = data.get_status()
+        data = data.get_data()
         flash('Страница успешно проверена', 'success')
         db_url_checks = Database_url_checks(DATABASE_URL)
-        db_url_checks.add_url_checks(id, status_code)
-    except: # noqa E722
+        db_url_checks.add_url_checks(id, data)
+    except Exception as e:
+        print(e)
         flash('Произошла ошибка при проверке', 'danger')
     finally:
         return redirect(url_for('url', id=id))
