@@ -37,7 +37,7 @@ def urls_create():
     if errors:
         flash('Некорректный URL', 'danger')
         messages = get_flashed_messages(with_categories=True)
-        return render_template('index.html', url=url, messages=messages)
+        return render_template('index.html', url=url, messages=messages), 422
     pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}"
     url = re.search(pattern, url)[0]
     url_by_name = db_url.get_url_by_name(url)
