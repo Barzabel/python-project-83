@@ -36,8 +36,9 @@ class Database_url:
         try:
             cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
             SQL = 'SELECT urls.id, urls.name, urls.created_at, \
-            urls_checks.status_code, urls_checks.created_at AS urls_checks_created_at ,\
-            MAX(urls_checks.url_id) FROM urls LEFT JOIN urls_checks ON \
+            urls_checks.status_code, urls_checks.created_at AS \
+            urls_checks_created_at , MAX(urls_checks.url_id) \
+            FROM urls LEFT JOIN urls_checks ON \
             urls.id=urls_checks.url_id GROUP BY \
             urls.id, urls.name, urls.created_at, urls_checks.status_code, \
             urls_checks.created_at ORDER BY urls.created_at DESC'
