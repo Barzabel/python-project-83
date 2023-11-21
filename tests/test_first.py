@@ -1,21 +1,9 @@
-import pytest
-from page_analyzer.app import app as application
-
-@pytest.fixture()
-def flask_app():
-    app = application
-    yield app
-
-@pytest.fixture()
-def client(flask_app):
-    return flask_app.test_client()
-
-
-@pytest.fixture()
-def runner(flask_app):
-    return flask_app.test_cli_runner()
-
 
 def test_request_example(client):
+    """
+    Test if the client is running
+    """
     response = client.get("/")
-    assert "Анализатор страниц" in response.text
+    string = "Анализатор страниц"
+    bytes_data = string.encode('utf-8')
+    assert bytes_data in response.data
