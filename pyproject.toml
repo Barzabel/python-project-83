@@ -3,6 +3,9 @@ name = "hexlet-code"
 version = "0.1.0"
 description = ""
 authors = ["Barzabek <kochenko1995@mail.ru>"]
+packages = [
+    {include = "page_analyzer"}
+]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -13,7 +16,6 @@ psycopg2-binary = "^2.9.9"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.2"
 lxml = "^4.9.3"
-
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"
