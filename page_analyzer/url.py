@@ -1,4 +1,5 @@
 import validators
+from urllib.parse import urlparse
 
 
 def is_validat_url(url):
@@ -8,3 +9,8 @@ def is_validat_url(url):
     if not validators.url(url):
         errors['worng_url'] = 'incorrect url format'
     return errors
+
+
+def get_clear_url(url):
+    pars_url = urlparse(url)
+    return "{}://{}".format(pars_url.scheme, pars_url.netloc)

@@ -9,10 +9,10 @@ from flask import (
 )
 from dotenv import load_dotenv
 from .db import Database_url, Database_url_checks
-from .url import is_validat_url
+from .url import is_validat_url, get_clear_url
 from .parser import get_data
 import os
-import re
+
 
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -35,8 +35,7 @@ def urls_create():
     if errors:
         flash('Некорректный URL', 'danger')
         return render_template('index.html', url=url), 422
-    pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}"
-    url = re.search(pattern, url)[0]
+    url = get_clear_url(url)
     is_exist_url = db_url.get_url_by_name(url)
 
     if is_exist_url:
