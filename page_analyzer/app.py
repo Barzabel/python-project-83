@@ -5,7 +5,6 @@ from flask import (
     url_for,
     request,
     flash,
-    get_flashed_messages,
     abort,
 )
 from dotenv import load_dotenv
@@ -25,8 +24,7 @@ app.secret_key = SECRET_KEY
 
 @app.get('/')
 def index():
-    messages = get_flashed_messages(with_categories=True)
-    return render_template('index.html', messages=messages)
+    return render_template('index.html')
 
 
 @app.post('/urls')
@@ -36,8 +34,7 @@ def urls_create():
     errors = is_validat_url(url)
     if errors:
         flash('Некорректный URL', 'danger')
-        messages = get_flashed_messages(with_categories=True)
-        return render_template('index.html', url=url, messages=messages), 422
+        return render_template('index.html', url=url), 422
     pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}"
     url = re.search(pattern, url)[0]
     is_exist_url = db_url.get_url_by_name(url)
@@ -56,13 +53,11 @@ def urls_create():
 def urls():
     db_url = Database_url(DATABASE_URL)
     urls = db_url.get_urls()
-    messages = get_flashed_messages(with_categories=True)
-    return render_template('urls.html', urls=urls, messages=messages)
+    return render_template('urls.html', urls=urls)
 
 
 @app.get('/urls/<int:id>')
 def url(id):
-    messages = get_flashed_messages(with_categories=True)
     db_url = Database_url(DATABASE_URL)
     url = db_url.get_url(id)
     if not url:
@@ -72,8 +67,7 @@ def url(id):
     return render_template(
         'url.html',
         url=url[0],
-        url_checks=url_checks,
-        messages=messages
+        url_checks=url_checks
     )
 
 
