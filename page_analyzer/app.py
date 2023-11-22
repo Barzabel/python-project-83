@@ -11,6 +11,7 @@ from flask import (
 from dotenv import load_dotenv
 from .db import Database_url, Database_url_checks
 from .validation import is_validat_url
+import validators
 from .parser import Parser
 import os
 import re
