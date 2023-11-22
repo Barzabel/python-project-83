@@ -10,9 +10,8 @@ from flask import (
 )
 from dotenv import load_dotenv
 from .db import Database_url, Database_url_checks
-from .validation import is_validat_url
-import validators
-from .parser import Parser
+from .url import is_validat_url
+from .parser import get_data
 import os
 import re
 
@@ -83,8 +82,7 @@ def url_checks(id):
     db_url = Database_url(DATABASE_URL)
     url = db_url.get_url(id)[0]
     try:
-        data = Parser(url.name)
-        data = data.get_data()
+        data = get_data(url.name)
         flash('Страница успешно проверена', 'success')
         db_url_checks = Database_url_checks(DATABASE_URL)
         db_url_checks.add_url_checks(id, data)
