@@ -40,15 +40,16 @@ def urls_create():
         return render_template('index.html', url=url, messages=messages), 422
     pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}"
     url = re.search(pattern, url)[0]
-    url_by_name = db_url.get_url_by_name(url)
+    is_exist_url = db_url.get_url_by_name(url)
 
-    if url_by_name:
+    if is_exist_url:
         flash('Страница уже существует',  'info')
-        return redirect(url_for('urls'))
+        id = is_exist_url[0].id
+        return redirect(url_for('url', id=id))
     else:
-        db_url.add_url(url)
+        id = db_url.add_url(url)
         flash('Страница успешно добавлена', 'success')
-        return redirect(url_for('urls'))
+        return redirect(url_for('url', id=id))
 
 
 @app.get('/urls')
