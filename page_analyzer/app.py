@@ -39,7 +39,7 @@ def urls_create():
     is_exist_url = db_url.get('name', url)
 
     if is_exist_url:
-        flash('Страница уже существует',  'info')
+        flash('Страница уже существует', 'info')
         id = is_exist_url[0].id
         return redirect(url_for('url', id=id))
     else:
