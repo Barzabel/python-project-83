@@ -76,10 +76,13 @@ def url_checks(id):
     url = db_url.get('id', id)[0]
     try:
         data = get_data(url.name)
+        if data['status_code'] == 200:
+            flash('Страница успешно проверена', 'success')
+        else:
+            flash('Произошла ошибка при проверке', 'danger')
         data['url_id'] = id
         db_url_checks = Database_url_checks(DATABASE_URL)
         db_url_checks.add(data)
-        flash('Страница успешно проверена', 'success')
     except Exception as e:
         print(e)
         flash('Произошла ошибка при проверке', 'danger')
