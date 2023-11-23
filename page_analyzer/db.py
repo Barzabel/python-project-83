@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2.extras import NamedTupleCursor
+from abc import ABC, abstractmethod
 
 
 class DatabaseException(Exception):
@@ -7,7 +8,7 @@ class DatabaseException(Exception):
         self.message = message
 
 
-class Database_url:
+class Database(ABC):
     def __init__(self, config):
         try:
             self.conect = psycopg2.connect(config)
@@ -15,22 +16,66 @@ class Database_url:
             message = f'Can\'t connect to the database! Error: {e}'
             raise DatabaseException(message)
 
-    def __del__(self):
-        self.conect.close()
+    @property
+    @abstractmethod
+    def filds(self):
+        pass
 
-    def add_url(self, url):
+    @property
+    @abstractmethod
+    def table_name(self):
+        pass
+
+    def add(self, data):
+        res = []
+        for fild in self.filds:
+            res.append('%({})s'.format(fild))
+        VALUE_FILDS = ", ".join(res)
+        FILDS = ", ".join(self.filds)
+        TABLE_NAME = self.table_name
         try:
             cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'INSERT INTO urls (name) VALUES (%s) RETURNING id'
             cur.execute(
-                    SQL,
-                    (str(url),))
+                f'''
+                INSERT INTO {TABLE_NAME} ({FILDS})
+                VALUES ({VALUE_FILDS}) RETURNING id
+                ''', data
+            )
             result = cur.fetchall()
             self.conect.commit()
             return result
         except psycopg2.Error as e:
             message = f'Can\'t add url to database! Error: {e}'
             raise DatabaseException(message)
+
+    def get(self, field, value, order_by=None, desc=False):
+        ORDER_BY = ''
+        if order_by:
+            SC = 'DESC' if desc else 'ASC'
+            ORDER_BY = f'ORDER BY {order_by} {SC}'
+        TABLE_NAME = self.table_name
+        try:
+            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            SQL = f'SELECT * FROM {TABLE_NAME} WHERE {field} = (%s) {ORDER_BY}'
+            cur.execute(SQL, (value,))
+            result = cur.fetchall()
+            return result
+        except psycopg2.Error as e:
+            message = f'Can\'t get url from database! Error: {e}'
+            raise DatabaseException(message)
+
+    def __del__(self):
+        self.conect.close()
+
+
+class Database_url(Database):
+    @property
+    def table_name(self):
+        return "urls"
+
+    @property
+    def filds(self):
+        return ['name']
 
     def get_urls(self):
         try:
@@ -41,7 +86,7 @@ class Database_url:
             FROM urls LEFT JOIN urls_checks ON \
             urls.id=urls_checks.url_id GROUP BY \
             urls.id, urls.name, urls.created_at, urls_checks.status_code, \
-            urls_checks.created_at ORDER BY urls.created_at DESC'
+            urls_checks.created_at ORDER BY urls.id DESC'
 
             cur.execute(SQL)
             result = cur.fetchall()
@@ -50,65 +95,12 @@ class Database_url:
             message = f'Can\'t get url from database! Error: {e}'
             raise DatabaseException(message)
 
-    def get_url(self, id):
-        try:
-            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'SELECT * FROM urls WHERE id = (%s)'
-            cur.execute(SQL, (id,))
-            result = cur.fetchall()
-            return result
-        except psycopg2.Error as e:
-            message = f'Can\'t get url from database! Error: {e}'
-            raise DatabaseException(message)
 
-    def get_url_by_name(self, name):
-        try:
-            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'SELECT * FROM urls WHERE name = (%s)'
-            cur.execute(SQL, (name,))
-            result = cur.fetchall()
-            return result
-        except psycopg2.Error as e:
-            message = f'Can\'t get url from database! Error: {e}'
-            raise DatabaseException(message)
+class Database_url_checks(Database):
+    @property
+    def table_name(self):
+        return "urls_checks"
 
-
-class Database_url_checks:
-    def __init__(self, config):
-        try:
-            self.conect = psycopg2.connect(config)
-        except psycopg2.Error as e:
-            message = f'Can\'t connect to the database! Error: {e}'
-            raise DatabaseException(message)
-
-    def __del__(self):
-        self.conect.close()
-
-    def add_url_checks(self, url_id, data):
-        data['url_id'] = url_id
-        try:
-            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            cur.execute(
-                '''
-                INSERT INTO urls_checks (url_id, status_code,
-                h1, title, description)
-                VALUES (%(url_id)s, %(status_code)s, %(h1)s,
-                %(title)s, %(description)s)
-                ''', data
-            )
-            self.conect.commit()
-        except psycopg2.Error as e:
-            message = f'Can\'t add url to database! Error: {e}'
-            raise DatabaseException(message)
-
-    def get_url(self, id):
-        try:
-            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'SELECT * FROM urls_checks \
-            WHERE url_id = (%s) ORDER BY id DESC'
-            cur.execute(SQL, (id,))
-            result = cur.fetchall()
-            return result
-        except psycopg2.Error as e:
-            message = f'Can\'t get url from database! Error: {e}'
-            raise DatabaseException(message)
+    @property
+    def filds(self):
+        return ['url_id', 'status_code', 'h1', 'title', 'description']

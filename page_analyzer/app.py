@@ -36,14 +36,14 @@ def urls_create():
         flash('Некорректный URL', 'danger')
         return render_template('index.html', url=url), 422
     url = get_clear_url(url)
-    is_exist_url = db_url.get_url_by_name(url)
+    is_exist_url = db_url.get('name', url)
 
     if is_exist_url:
         flash('Страница уже существует',  'info')
         id = is_exist_url[0].id
         return redirect(url_for('url', id=id))
     else:
-        id = db_url.add_url(url)
+        id = db_url.add({'name': url})
         flash('Страница успешно добавлена', 'success')
         return redirect(url_for('url', id=id[0].id))
 
@@ -58,11 +58,11 @@ def urls():
 @app.get('/urls/<int:id>')
 def url(id):
     db_url = Database_url(DATABASE_URL)
-    url = db_url.get_url(id)
+    url = db_url.get('id', id)
     if not url:
         return abort(404)
     db_url_checks = Database_url_checks(DATABASE_URL)
-    url_checks = db_url_checks.get_url(id)
+    url_checks = db_url_checks.get('url_id', id, order_by='id', desc=True)
     return render_template(
         'url.html',
         url=url[0],
@@ -73,12 +73,13 @@ def url(id):
 @app.post('/urls/<int:id>/checks')
 def url_checks(id):
     db_url = Database_url(DATABASE_URL)
-    url = db_url.get_url(id)[0]
+    url = db_url.get('id', id)[0]
     try:
         data = get_data(url.name)
-        flash('Страница успешно проверена', 'success')
+        data['url_id'] = id
         db_url_checks = Database_url_checks(DATABASE_URL)
-        db_url_checks.add_url_checks(id, data)
+        db_url_checks.add(data)
+        flash('Страница успешно проверена', 'success')
     except Exception as e:
         print(e)
         flash('Произошла ошибка при проверке', 'danger')
