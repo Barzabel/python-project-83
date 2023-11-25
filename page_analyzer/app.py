@@ -8,7 +8,7 @@ from flask import (
     abort,
 )
 from dotenv import load_dotenv
-from .db import Database_url, Database_url_checks
+from .db import DatabaseUrl, DatabaseUrlChecks
 from .url import is_validat_url, extract_domain
 from .parser import get_data
 import os
@@ -30,7 +30,7 @@ def index():
 
 @app.post('/urls')
 def urls_create():
-    db_url = Database_url(DATABASE_URL)
+    db_url = DatabaseUrl(DATABASE_URL)
     url = request.form.to_dict()['url'].strip()
     errors = is_validat_url(url)
     if errors:
@@ -51,18 +51,18 @@ def urls_create():
 
 @app.get('/urls')
 def urls():
-    db_url = Database_url(DATABASE_URL)
+    db_url = DatabaseUrl(DATABASE_URL)
     urls = db_url.get_urls()
     return render_template('urls.html', urls=urls)
 
 
 @app.get('/urls/<int:id>')
 def url(id):
-    db_url = Database_url(DATABASE_URL)
+    db_url = DatabaseUrl(DATABASE_URL)
     url = db_url.get('id', id, one_element=True)
     if not url:
         return abort(404)
-    db_url_checks = Database_url_checks(DATABASE_URL)
+    db_url_checks = DatabaseUrlChecks(DATABASE_URL)
     url_checks = db_url_checks.get('url_id', id, order_by='id', desc=True)
     return render_template(
         'url.html',
@@ -73,8 +73,8 @@ def url(id):
 
 @app.post('/urls/<int:id>/checks')
 def url_checks(id):
-    db_url = Database_url(DATABASE_URL)
-    url = db_url.get('id', id)[0]
+    db_url = DatabaseUrl(DATABASE_URL)
+    url = db_url.get('id', id, one_element=True)
     try:
         response = requests.get(url.name, timeout=3)
         data = get_data(response)
@@ -83,7 +83,7 @@ def url_checks(id):
         else:
             flash('Произошла ошибка при проверке', 'danger')
         data['url_id'] = id
-        db_url_checks = Database_url_checks(DATABASE_URL)
+        db_url_checks = DatabaseUrlChecks(DATABASE_URL)
         db_url_checks.add(data)
     except Exception:
         flash('Произошла ошибка при проверке', 'danger')

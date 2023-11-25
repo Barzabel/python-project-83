@@ -27,10 +27,10 @@ class Database(ABC):
         pass
 
     def add(self, data):
-        res = []
+        filds = []
         for fild in self.filds:
-            res.append('%({})s'.format(fild))
-        VALUE_FILDS = ", ".join(res)
+            filds.append('%({})s'.format(fild))
+        VALUE_FILDS = ", ".join(filds)
         FILDS = ", ".join(self.filds)
         TABLE_NAME = self.table_name
         try:
@@ -68,7 +68,7 @@ class Database(ABC):
         self.conect.close()
 
 
-class Database_url(Database):
+class DatabaseUrl(Database):
     @property
     def table_name(self):
         return "urls"
@@ -94,7 +94,7 @@ class Database_url(Database):
             raise DatabaseException(message)
 
 
-class Database_url_checks(Database):
+class DatabaseUrlChecks(Database):
     @property
     def table_name(self):
         return "urls_checks"
