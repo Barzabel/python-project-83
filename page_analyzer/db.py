@@ -34,31 +34,31 @@ class Database(ABC):
         FILDS = ", ".join(self.filds)
         TABLE_NAME = self.table_name
         try:
-            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            cur.execute(
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor.execute(
                 f'''
                 INSERT INTO {TABLE_NAME} ({FILDS})
                 VALUES ({VALUE_FILDS}) RETURNING id
                 ''', data
             )
-            result = cur.fetchall()
+            result = cursor.fetchall()
             self.conect.commit()
             return result
         except psycopg2.Error as e:
             message = f'Can\'t add url to database! Error: {e}'
             raise DatabaseException(message)
 
-    def get(self, field, value, order_by=None, desc=False):
+    def get(self, field, value, order_by=None, desc=False, one_element=False):
         ORDER_BY = ''
         if order_by:
             SC = 'DESC' if desc else 'ASC'
             ORDER_BY = f'ORDER BY {order_by} {SC}'
         TABLE_NAME = self.table_name
         try:
-            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
             SQL = f'SELECT * FROM {TABLE_NAME} WHERE {field} = (%s) {ORDER_BY}'
-            cur.execute(SQL, (value,))
-            result = cur.fetchall()
+            cursor.execute(SQL, (value,))
+            result = cursor.fetchone() if one_element else cursor.fetchall()
             return result
         except psycopg2.Error as e:
             message = f'Can\'t get url from database! Error: {e}'
@@ -79,17 +79,15 @@ class Database_url(Database):
 
     def get_urls(self):
         try:
-            cur = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = 'SELECT urls.id, urls.name, urls.created_at, \
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor.execute('SELECT urls.id, urls.name, urls.created_at, \
             urls_checks.status_code, urls_checks.created_at AS \
             urls_checks_created_at , MAX(urls_checks.url_id) \
             FROM urls LEFT JOIN urls_checks ON \
             urls.id=urls_checks.url_id GROUP BY \
             urls.id, urls.name, urls.created_at, urls_checks.status_code, \
-            urls_checks.created_at ORDER BY urls.id DESC'
-
-            cur.execute(SQL)
-            result = cur.fetchall()
+            urls_checks.created_at ORDER BY urls.id DESC')
+            result = cursor.fetchall()
             return result
         except psycopg2.Error as e:
             message = f'Can\'t get url from database! Error: {e}'

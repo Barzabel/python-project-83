@@ -1,9 +1,7 @@
-import requests
 from bs4 import BeautifulSoup
 
 
-def get_data(url):
-    response = requests.get(url, timeout=3)
+def get_data(response):
     parse_data = BeautifulSoup(response.text, 'lxml')
 
     title = parse_data.title.text if parse_data.title else None

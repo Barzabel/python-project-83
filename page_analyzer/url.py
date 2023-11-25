@@ -11,6 +11,6 @@ def is_validat_url(url):
     return errors
 
 
-def get_clear_url(url):
-    pars_url = urlparse(url)
-    return "{}://{}".format(pars_url.scheme, pars_url.netloc)
+def extract_domain(url):
+    parsed_url = urlparse(url)
+    return "{}://{}".format(parsed_url.scheme, parsed_url.netloc)

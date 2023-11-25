@@ -9,9 +9,10 @@ from flask import (
 )
 from dotenv import load_dotenv
 from .db import Database_url, Database_url_checks
-from .url import is_validat_url, get_clear_url
+from .url import is_validat_url, extract_domain
 from .parser import get_data
 import os
+import requests
 
 
 load_dotenv()
@@ -35,12 +36,12 @@ def urls_create():
     if errors:
         flash('Некорректный URL', 'danger')
         return render_template('index.html', url=url), 422
-    url = get_clear_url(url)
-    is_exist_url = db_url.get('name', url)
+    url = extract_domain(url)
+    is_exist_url = db_url.get('name', url, one_element=True)
 
     if is_exist_url:
         flash('Страница уже существует', 'info')
-        id = is_exist_url[0].id
+        id = is_exist_url.id
         return redirect(url_for('url', id=id))
     else:
         id = db_url.add({'name': url})
@@ -58,14 +59,14 @@ def urls():
 @app.get('/urls/<int:id>')
 def url(id):
     db_url = Database_url(DATABASE_URL)
-    url = db_url.get('id', id)
+    url = db_url.get('id', id, one_element=True)
     if not url:
         return abort(404)
     db_url_checks = Database_url_checks(DATABASE_URL)
     url_checks = db_url_checks.get('url_id', id, order_by='id', desc=True)
     return render_template(
         'url.html',
-        url=url[0],
+        url=url,
         url_checks=url_checks
     )
 
@@ -75,7 +76,8 @@ def url_checks(id):
     db_url = Database_url(DATABASE_URL)
     url = db_url.get('id', id)[0]
     try:
-        data = get_data(url.name)
+        response = requests.get(url.name, timeout=3)
+        data = get_data(response)
         if data['status_code'] == 200:
             flash('Страница успешно проверена', 'success')
         else:
@@ -83,8 +85,7 @@ def url_checks(id):
         data['url_id'] = id
         db_url_checks = Database_url_checks(DATABASE_URL)
         db_url_checks.add(data)
-    except Exception as e:
-        print(e)
+    except Exception:
         flash('Произошла ошибка при проверке', 'danger')
     finally:
         return redirect(url_for('url', id=id))
