@@ -46,7 +46,7 @@ def urls_create():
     else:
         id = db_url.add({'name': url})
         flash('Страница успешно добавлена', 'success')
-        return redirect(url_for('url', id=id[0].id))
+        return redirect(url_for('url', id=id.id))
 
 
 @app.get('/urls')

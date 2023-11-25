@@ -41,7 +41,7 @@ class Database(ABC):
                 VALUES ({VALUE_FILDS}) RETURNING id
                 ''', data
             )
-            result = cursor.fetchall()
+            result = cursor.fetchone()
             self.conect.commit()
             return result
         except psycopg2.Error as e:
