@@ -42,8 +42,9 @@ class DatabaseUrl(Database):
         try:
             cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
             cursor.execute(
-                    'INSERT INTO urls (name) VALUES (%s) RETURNING id',
-                    (str(url),))
+                'INSERT INTO urls (name) VALUES (%s) RETURNING id',
+                (str(url),)
+            )
             result = cursor.fetchone()
             self.conect.commit()
             return result
