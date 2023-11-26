@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2.extras import NamedTupleCursor
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class DatabaseException(Exception):
@@ -16,66 +16,11 @@ class Database(ABC):
             message = f'Can\'t connect to the database! Error: {e}'
             raise DatabaseException(message)
 
-    @property
-    @abstractmethod
-    def filds(self):
-        pass
-
-    @property
-    @abstractmethod
-    def table_name(self):
-        pass
-
-    def add(self, data):
-        filds = []
-        for fild in self.filds:
-            filds.append('%({})s'.format(fild))
-        VALUE_FILDS = ", ".join(filds)
-        FILDS = ", ".join(self.filds)
-        TABLE_NAME = self.table_name
-        try:
-            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            cursor.execute(
-                f'''
-                INSERT INTO {TABLE_NAME} ({FILDS})
-                VALUES ({VALUE_FILDS}) RETURNING id
-                ''', data
-            )
-            result = cursor.fetchone()
-            self.conect.commit()
-            return result
-        except psycopg2.Error as e:
-            message = f'Can\'t add url to database! Error: {e}'
-            raise DatabaseException(message)
-
-    def get(self, field, value, order_by=None, desc=False, one_element=False):
-        ORDER_BY = ''
-        if order_by:
-            SC = 'DESC' if desc else 'ASC'
-            ORDER_BY = f'ORDER BY {order_by} {SC}'
-        TABLE_NAME = self.table_name
-        try:
-            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
-            SQL = f'SELECT * FROM {TABLE_NAME} WHERE {field} = (%s) {ORDER_BY}'
-            cursor.execute(SQL, (value,))
-            result = cursor.fetchone() if one_element else cursor.fetchall()
-            return result
-        except psycopg2.Error as e:
-            message = f'Can\'t get url from database! Error: {e}'
-            raise DatabaseException(message)
-
     def __del__(self):
         self.conect.close()
 
 
 class DatabaseUrl(Database):
-    @property
-    def table_name(self):
-        return "urls"
-
-    @property
-    def filds(self):
-        return ['name']
 
     def get_urls(self):
         try:
@@ -93,12 +38,73 @@ class DatabaseUrl(Database):
             message = f'Can\'t get url from database! Error: {e}'
             raise DatabaseException(message)
 
+    def add(self, url):
+        try:
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor.execute(
+                    'INSERT INTO urls (name) VALUES (%s) RETURNING id',
+                    (str(url),))
+            result = cursor.fetchone()
+            self.conect.commit()
+            return result
+        except psycopg2.Error as e:
+            message = f'Can\'t add url to database! Error: {e}'
+            raise DatabaseException(message)
+
+    def get_url_by_id(self, id):
+        try:
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor .execute(
+                'SELECT * FROM urls WHERE id = (%s)',
+                (id,)
+            )
+            result = cursor.fetchone()
+            return result
+        except psycopg2.Error as e:
+            message = f'Can\'t get url from database! Error: {e}'
+            raise DatabaseException(message)
+
+    def get_url_by_name(self, name):
+        try:
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor.execute(
+                'SELECT * FROM urls WHERE name = (%s)',
+                (name,)
+            )
+            result = cursor.fetchone()
+            return result
+        except psycopg2.Error as e:
+            message = f'Can\'t get url from database! Error: {e}'
+            raise DatabaseException(message)
+
 
 class DatabaseUrlChecks(Database):
-    @property
-    def table_name(self):
-        return "urls_checks"
+    def add(self, data):
+        try:
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor.execute(
+                '''
+                INSERT INTO urls_checks (url_id, status_code,
+                h1, title, description)
+                VALUES (%(url_id)s, %(status_code)s, %(h1)s,
+                %(title)s, %(description)s)
+                ''', data
+            )
+            self.conect.commit()
+        except psycopg2.Error as e:
+            message = f'Can\'t add url to database! Error: {e}'
+            raise DatabaseException(message)
 
-    @property
-    def filds(self):
-        return ['url_id', 'status_code', 'h1', 'title', 'description']
+    def get_url_by_id(self, id):
+        try:
+            cursor = self.conect.cursor(cursor_factory=NamedTupleCursor)
+            cursor.execute(
+                'SELECT * FROM urls_checks \
+                WHERE url_id = (%s) ORDER BY id DESC',
+                (id,)
+            )
+            result = cursor.fetchall()
+            return result
+        except psycopg2.Error as e:
+            message = f'Can\'t get url from database! Error: {e}'
+            raise DatabaseException(message)
