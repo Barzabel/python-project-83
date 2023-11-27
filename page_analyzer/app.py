@@ -8,7 +8,14 @@ from flask import (
     abort,
 )
 from dotenv import load_dotenv
-from .db import DatabaseUrl, DatabaseUrlChecks
+from .db import (
+    add_url_checks,
+    add_url,
+    get_url_checks_by_id,
+    get_all_urls,
+    get_url_by_id,
+    get_url_by_name
+)
 from .url import validate_url, extract_domain
 from .parser import get_data
 import os
@@ -30,7 +37,6 @@ def index():
 
 @app.post('/urls')
 def urls_create():
-    db_url = DatabaseUrl(DATABASE_URL)
     url = request.form.to_dict()['url'].strip()
     errors = validate_url(url)
     if errors:
@@ -38,33 +44,31 @@ def urls_create():
             flash(text, category)
         return render_template('index.html', url=url), 422
     url = extract_domain(url)
-    exist_url = db_url.get_url_by_name(url)
+    exist_url = get_url_by_name(DATABASE_URL, url)
 
     if exist_url:
         flash('Страница уже существует', 'info')
         id = exist_url.id
         return redirect(url_for('url', id=id))
     else:
-        id = db_url.add(url)
+        id = add_url(DATABASE_URL, url)
         flash('Страница успешно добавлена', 'success')
         return redirect(url_for('url', id=id.id))
 
 
 @app.get('/urls')
 def urls():
-    db_url = DatabaseUrl(DATABASE_URL)
-    urls = db_url.get_urls()
+    urls = get_all_urls(DATABASE_URL)
     return render_template('urls.html', urls=urls)
 
 
 @app.get('/urls/<int:id>')
 def url(id):
-    db_url = DatabaseUrl(DATABASE_URL)
-    url = db_url.get_url_by_id(id)
+    url = get_url_by_id(DATABASE_URL, id)
     if not url:
         return abort(404)
-    db_url_checks = DatabaseUrlChecks(DATABASE_URL)
-    url_checks = db_url_checks.get_url_by_id(id)
+
+    url_checks = get_url_checks_by_id(DATABASE_URL, id)
     return render_template(
         'url.html',
         url=url,
@@ -74,8 +78,7 @@ def url(id):
 
 @app.post('/urls/<int:id>/checks')
 def url_checks(id):
-    db_url = DatabaseUrl(DATABASE_URL)
-    url = db_url.get_url_by_id(id)
+    url = get_url_by_id(DATABASE_URL, id)
     try:
         response = requests.get(url.name, timeout=3)
         response.raise_for_status()
@@ -83,8 +86,7 @@ def url_checks(id):
         data['status_code'] = response.status_code
         data['url_id'] = id
         flash('Страница успешно проверена', 'success')
-        db_url_checks = DatabaseUrlChecks(DATABASE_URL)
-        db_url_checks.add(data)
+        add_url_checks(DATABASE_URL, data)
     except Exception:
         flash('Произошла ошибка при проверке', 'danger')
     finally:
