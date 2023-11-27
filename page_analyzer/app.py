@@ -9,7 +9,7 @@ from flask import (
 )
 from dotenv import load_dotenv
 from .db import DatabaseUrl, DatabaseUrlChecks
-from .url import is_validat_url, extract_domain
+from .url import validate_url, extract_domain
 from .parser import get_data
 import os
 import requests
@@ -32,16 +32,17 @@ def index():
 def urls_create():
     db_url = DatabaseUrl(DATABASE_URL)
     url = request.form.to_dict()['url'].strip()
-    errors = is_validat_url(url)
+    errors = validate_url(url)
     if errors:
-        flash('Некорректный URL', 'danger')
+        for text, category in errors:
+            flash(text, category)
         return render_template('index.html', url=url), 422
     url = extract_domain(url)
-    is_exist_url = db_url.get_url_by_name(url)
+    exist_url = db_url.get_url_by_name(url)
 
-    if is_exist_url:
+    if exist_url:
         flash('Страница уже существует', 'info')
-        id = is_exist_url.id
+        id = exist_url.id
         return redirect(url_for('url', id=id))
     else:
         id = db_url.add(url)
@@ -77,16 +78,14 @@ def url_checks(id):
     url = db_url.get_url_by_id(id)
     try:
         response = requests.get(url.name, timeout=3)
-        data = get_data(response.text, response.status_code)
-        if data['status_code'] == 200:
-            flash('Страница успешно проверена', 'success')
-        else:
-            flash('Произошла ошибка при проверке', 'danger')
+        response.raise_for_status()
+        data = get_data(response.text)
+        data['status_code'] = response.status_code
         data['url_id'] = id
+        flash('Страница успешно проверена', 'success')
         db_url_checks = DatabaseUrlChecks(DATABASE_URL)
         db_url_checks.add(data)
-    except Exception as e:
-        print(e)
+    except Exception:
         flash('Произошла ошибка при проверке', 'danger')
     finally:
         return redirect(url_for('url', id=id))

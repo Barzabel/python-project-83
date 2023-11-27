@@ -2,12 +2,12 @@ import validators
 from urllib.parse import urlparse
 
 
-def is_validat_url(url):
-    errors = {}
-    if len(url) > 255:
-        errors['lenghth'] = 'the address is too long, more than 255 characters'
+def validate_url(url):
+    errors = []
     if not validators.url(url):
-        errors['worng_url'] = 'incorrect url format'
+        errors.append(('Некорректный URL', 'danger'))
+    if len(url) > 255:
+        errors.append(('Error! Url length > 255', 'danger'))
     return errors
 
 

@@ -8,6 +8,8 @@ Webpage Analyzer is an online tool that assesses the compatibility of web pages 
 [![Maintainability](https://api.codeclimate.com/v1/badges/321779d1cc616bfe1c60/maintainability)](https://codeclimate.com/github/Barzabel/python-project-83/maintainability)
 
 
+this is a pet-progect
+While working on it, I had the opportunity to engage with  technologies like Flask, Jinja, and PostgreSQL.
 ### You can check the project  [web-site](https://page-analyzer-qkil.onrender.com/)
 
 ## Requirements
@@ -28,13 +30,13 @@ Webpage Analyzer is an online tool that assesses the compatibility of web pages 
 ```git clone https://github.com/Barzabel/python-project-83```.
 To use the app properly you'll need to provide it with `$DATABASE_URL` and `$SECRET_KEY` vars.
 
-You can create `.env` file inside of this project and define variables there or do it your way.
-```
-DATABASE_URL = 'postgresql://{user}:{password}@{host}:{port}/{db}'
-# postgresql://janedoe:mypassword@localhost:5432/mydb
-SECRET_KEY = 'I AM THE SECRET'
-```
+To deploy the application, you need to rename the `.env-sample` file to `.env` in the root directory. 
+After that, modify the values for `SECRET_KEY` and `DATABASE_URL.`
+It is important to insert your own values.
+
+After that
 
 Run ```make build``` to install all required packages and create necessary tables in the database.
 
 Run ```make start``` to start.
+

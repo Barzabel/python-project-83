@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
 
-def get_data(content, status_code):
+def get_data(content):
     parse_data = BeautifulSoup(content, 'lxml')
 
     title = parse_data.title.text if parse_data.title else None
@@ -11,7 +11,6 @@ def get_data(content, status_code):
     if meta:
         description = meta.get('content', None)
     return {
-        'status_code': status_code,
         'title': title,
         'h1': h1,
         'description': description,
