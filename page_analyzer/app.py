@@ -44,11 +44,11 @@ def urls_create():
             flash(text, category)
         return render_template('index.html', url=url), 422
     url = extract_domain(url)
-    exist_url = get_url_by_name(DATABASE_URL, url)
+    found_url = get_url_by_name(DATABASE_URL, url)
 
-    if exist_url:
+    if found_url:
         flash('Страница уже существует', 'info')
-        id = exist_url.id
+        id = found_url.id
         return redirect(url_for('url', id=id))
     else:
         id = add_url(DATABASE_URL, url)
